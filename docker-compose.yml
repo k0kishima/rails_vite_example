@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    networks:
+      - vite-rails-network
+    ports:
+      # 自由に利用できるとされる動的・プライベート ポート番号は 49152–65535 らしいので、これらのうち5万番を利用する
+      # 以下、ウェルノウンポート番号 + 50000 という規約で設定していく
+      - "53000:3000"
+    volumes:
+      - .:/app
+      - gem-cache:/usr/local/bundle
+      - node-modules-cache:/app/node_modules
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: bash -c "rm -f tmp/pids/server.pid && rails s -b 0.0.0.0"
+
+volumes:
+  gem-cache: {}
+  node-modules-cache: {}
+
+networks:
+  vite-rails-network:
+    driver: bridge
