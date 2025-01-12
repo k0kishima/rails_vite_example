@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     networks:
-      - vite-rails-network
+      - rails-vite-network
     ports:
       # 自由に利用できるとされる動的・プライベート ポート番号は 49152–65535 らしいので、これらのうち5万番を利用する
       # 以下、ウェルノウンポート番号 + 50000 という規約で設定していく
@@ -23,5 +23,5 @@ volumes:
   node-modules-cache: {}
 
 networks:
-  vite-rails-network:
+  rails-vite-network:
     driver: bridge
