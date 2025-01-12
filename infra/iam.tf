@@ -13,8 +13,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 
   tags = {
-    Project = var.project
-    Name    = "${var.project}-ecs-task-execution-role"
+    Name = "${var.project}-ecs-task-execution-role"
   }
 }
 
