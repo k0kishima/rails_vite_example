@@ -5,9 +5,11 @@ FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 WORKDIR /rails
 
-# Install base packages
+# Install base packages and Node.js
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y curl libjemalloc2 && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install --no-install-recommends -y nodejs && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -23,11 +25,17 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Install Ruby gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
+# Install Node.js dependencies
+COPY package.json package-lock.json ./
+RUN rm -rf node_modules package-lock.json && npm install || { echo "Retrying npm install"; npm install; }
+
+# Copy application code
 COPY . .
 
 # Optional: Precompile assets (adjust based on your app's needs)

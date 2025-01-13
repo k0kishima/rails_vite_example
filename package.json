@@ -4,5 +4,8 @@
   "devDependencies": {
     "vite": "^5.4.11",
     "vite-plugin-ruby": "^5.1.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.6.1"
   }
 }
