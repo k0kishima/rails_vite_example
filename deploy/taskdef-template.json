@@ -1,0 +1,39 @@
+{
+  "family": "${PROJECT_NAME}-ecs-task-rails",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${PROJECT_NAME}-ecs-task-execution-role",
+  "containerDefinitions": [
+    {
+      "name": "rails_app",
+      "image": "${IMAGE_URI}",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "RAILS_ENV",
+          "value": "production"
+        },
+        {
+          "name": "SECRET_KEY_BASE",
+          "value": "${SECRET_KEY_BASE}"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/aws/ecs/${PROJECT_NAME}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "rails-app"
+        }
+      }
+    }
+  ]
+}

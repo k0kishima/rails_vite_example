@@ -2,28 +2,26 @@ resource "aws_ecs_cluster" "this" {
   name = "${var.project}-ecs-cluster"
 
   tags = {
-    Project = var.project
-    Name    = "${var.project}-ecs-cluster"
+    Name = "${var.project}-ecs-cluster"
   }
 }
 
-resource "aws_ecs_task_definition" "nginx" {
-  family                   = "${var.project}-nginx-task"
+resource "aws_ecs_task_definition" "this" {
+  family                   = "${var.project}-ecs-task-rails"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = "512"
+  memory                   = "1024"
 
   container_definitions = jsonencode([
     {
-      name      = "nginx"
-      image     = "nginx:1.27.3"
-      essential = true
+      name    = "rails_app"
+      image   = "python:alpine"
+      command = ["sh", "-c", "python3 -m http.server 3000"]
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 3000
           protocol      = "tcp"
         }
       ]
@@ -31,44 +29,42 @@ resource "aws_ecs_task_definition" "nginx" {
   ])
 
   tags = {
-    Project = var.project
-    Name    = "${var.project}-nginx-task"
+    Name = "${var.project}-ecs-task-rails"
   }
 }
 
-resource "aws_ecs_service" "nginx" {
-  name            = "${var.project}-nginx-service"
+resource "aws_ecs_service" "this" {
+  name            = "${var.project}-ecs-service-rails"
   cluster         = aws_ecs_cluster.this.id
-  task_definition = aws_ecs_task_definition.nginx.arn
+  task_definition = aws_ecs_task_definition.this.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets          = [aws_subnet.private_a.id, aws_subnet.private_c.id]
-    security_groups  = [aws_security_group.nginx_sg.id]
+    security_groups  = [aws_security_group.this.id]
     assign_public_ip = false
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.nginx.arn
-    container_name   = "nginx"
-    container_port   = 80
+    target_group_arn = aws_lb_target_group.this.arn
+    container_name   = "rails_app"
+    container_port   = 3000
   }
 
   tags = {
-    Project = var.project
-    Name    = "${var.project}-nginx-service"
+    Name = "${var.project}-ecs-service-rails"
   }
 }
 
-resource "aws_security_group" "nginx_sg" {
-  name        = "${var.project}-nginx-sg"
-  description = "Security group for Nginx ECS tasks"
+resource "aws_security_group" "this" {
+  name        = "${var.project}-sg"
+  description = "Security group for ECS Rails app"
   vpc_id      = aws_vpc.this.id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
+    from_port       = 3000
+    to_port         = 3000
     protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
@@ -81,7 +77,16 @@ resource "aws_security_group" "nginx_sg" {
   }
 
   tags = {
-    Project = var.project
-    Name    = "${var.project}-nginx-sg"
+    Name = "${var.project}-sg-ecs-rails"
+  }
+}
+
+
+resource "aws_cloudwatch_log_group" "ecs_rails_logs" {
+  name              = "/aws/ecs/${var.project}"
+  retention_in_days = 7
+
+  tags = {
+    Name = "${var.project}-logs"
   }
 }

@@ -32,9 +32,9 @@ resource "aws_lb" "this" {
   }
 }
 
-resource "aws_lb_target_group" "nginx" {
+resource "aws_lb_target_group" "this" {
   name        = "${var.project}-tg"
-  port        = 80
+  port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.this.id
   target_type = "ip"
@@ -61,6 +61,6 @@ resource "aws_lb_listener" "http" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.nginx.arn
+    target_group_arn = aws_lb_target_group.this.arn
   }
 }
