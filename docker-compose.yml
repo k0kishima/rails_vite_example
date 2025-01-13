@@ -1,22 +1,40 @@
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  networks:
+    - rails-vite-network
+  volumes:
+    - .:/app
+    - gem-cache:/usr/local/bundle
+    - node-modules-cache:/app/node_modules
+  working_dir: /app
+  stdin_open: true
+  tty: true
+
 services:
   app:
+    <<: *app-base
     build:
       context: .
       dockerfile: Dockerfile.dev
-    networks:
-      - rails-vite-network
     ports:
       # 自由に利用できるとされる動的・プライベート ポート番号は 49152–65535 らしいので、これらのうち5万番を利用する
       # 以下、ウェルノウンポート番号 + 50000 という規約で設定していく
       - "53000:3000"
-    volumes:
-      - .:/app
-      - gem-cache:/usr/local/bundle
-      - node-modules-cache:/app/node_modules
-    working_dir: /app
-    stdin_open: true
-    tty: true
     command: bash -c "rm -f tmp/pids/server.pid && rails s -b 0.0.0.0"
+    environment:
+      VITE_RUBY_HOST: "vite"
+
+  vite:
+    <<: *app-base
+    ports:
+      - "3036:3036"
+    environment:
+      VITE_RUBY_HOST: 0.0.0.0
+    depends_on:
+      - app
+    command: bin/vite dev
 
 volumes:
   gem-cache: {}
