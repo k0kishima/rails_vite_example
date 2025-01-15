@@ -11,6 +11,8 @@ x-app-base: &app-base
   working_dir: /app
   stdin_open: true
   tty: true
+  env_file:
+    - .env
 
 services:
   app:
