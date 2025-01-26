@@ -13,6 +13,18 @@
 # it.
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+
+require "capybara/rspec"
+
+Capybara.register_driver :selenium_remote_chrome do |app|
+  Capybara::Selenium::Driver.new(
+    app,
+    browser: :remote,
+    url: ENV.fetch("SELENIUM_REMOTE_URL", "http://chrome:4444/wd/hub"),
+    options: Selenium::WebDriver::Chrome::Options.new
+  )
+end
+
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -91,4 +103,10 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 =end
+
+  config.before(:each, type: :system) do
+    Capybara.server_host = IPSocket.getaddress(Socket.gethostname)
+    Capybara.app_host = "http://#{Capybara.server_host}:#{Capybara.server_port}"
+    driven_by :selenium_remote_chrome
+  end
 end

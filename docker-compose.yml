@@ -43,6 +43,8 @@ services:
     platform: linux/amd64
     ports:
       - "4444:4444"
+    networks:
+      - rails-vite-network
 
 volumes:
   gem-cache: {}
