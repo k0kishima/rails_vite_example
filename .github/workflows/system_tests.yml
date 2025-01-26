@@ -1,4 +1,4 @@
-name: Unit Tests
+name: System Tests
 
 on:
   push:
@@ -6,9 +6,15 @@ on:
       - e2e-test
 
 jobs:
-  unit_tests:
-    name: Run Unit Tests
+  system_tests:
+    name: Run System Tests
     runs-on: ubuntu-latest
+
+    services:
+      chrome:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
 
     steps:
       - name: Checkout code
@@ -32,5 +38,10 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
-      - name: Run RSpec
-        run: bundle exec parallel_rspec --exclude-pattern "spec/system/.*_spec\.rb"
+      - name: Precompile assets
+        run: bin/vite build
+
+      - name: Run System Specs
+        env:
+          SELENIUM_REMOTE_URL: http://localhost:4444/wd/hub
+        run: bundle exec parallel_rspec --pattern "spec/system/.*_spec\.rb"
