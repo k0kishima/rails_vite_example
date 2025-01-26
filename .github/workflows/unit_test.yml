@@ -31,4 +31,4 @@ jobs:
         run: bundle install
 
       - name: Run RSpec
-        run: bundle exec rspec
+        run: bundle exec parallel_rspec --exclude-pattern "spec/system/.*_spec\.rb"
